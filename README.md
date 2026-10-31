@@ -15,7 +15,19 @@ python -m venv .venv
 .venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
-Dataset (MVTec AD) is not committed; download instructions will be added in the Data phase.
+
+## Data
+MVTec AD (non-commercial, CC BY-NC-SA 4.0) is not committed. Download the selected categories
+from the Hugging Face mirror `foersben/mvtec-ad` (about 1 GB for 5 categories):
+```bash
+python scripts/download_mvtec.py          # categories from configs/protocol.yaml
+python scripts/eda_mvtec.py               # counts, sanity checks, sample grid -> results/
+python -m pytest                          # data tests
+```
+If Hugging Face answers HTTP 429, set `HF_HUB_DISABLE_XET=1` and rerun (the download resumes).
+
+Shared protocol (categories, preprocessing, validation split, seed): `configs/protocol.yaml`.
+Use `src.data.MVTecDataset(protocol, split)` with `split` in `train`, `val`, `test`.
 
 ## Layout
 - `configs/` experiment configs (YAML)

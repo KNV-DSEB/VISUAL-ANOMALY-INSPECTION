@@ -1,0 +1,26 @@
+# Shared evaluation protocol for all methods (Autoencoder, PatchCore, One-Class).
+# Do not change after benchmarking starts.
+
+dataset:
+  name: mvtec_ad
+  root: data/mvtec_ad            # relative to repo root; data is never committed
+  hf_repo: foersben/mvtec-ad     # Hugging Face mirror (CC BY-NC-SA 4.0, non-commercial use)
+  categories: [bottle, carpet, leather, screw, transistor]
+
+preprocessing:
+  resize: 256
+  crop: 224
+  normalize:
+    mean: [0.485, 0.456, 0.406]  # ImageNet
+    std: [0.229, 0.224, 0.225]
+  mask_interpolation: nearest
+
+split:
+  val_fraction: 0.2              # taken from train/good only (normal images)
+  seed: 42
+  # The official MVTec test set is used only for final reporting.
+  # Hyperparameters, checkpoints and thresholds are chosen on the validation split.
+
+threshold:
+  rule: percentile_of_val_normal_scores
+  percentile: 95                 # to be revisited on validation data only

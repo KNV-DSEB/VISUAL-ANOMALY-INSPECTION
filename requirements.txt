@@ -12,4 +12,5 @@ matplotlib
 tqdm
 faiss-cpu
 pytest
+huggingface_hub
 # demo (added later): streamlit

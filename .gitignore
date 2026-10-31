@@ -8,7 +8,7 @@ venv/
 .env
 
 # data & artifacts (never commit)
-data/
+/data/
 checkpoints/
 *.pt
 *.pth

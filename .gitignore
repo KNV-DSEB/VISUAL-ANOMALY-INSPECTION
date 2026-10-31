@@ -1,0 +1,27 @@
+__pycache__/
+*.pyc
+.venv/
+venv/
+.ipynb_checkpoints/
+.idea/
+.vscode/
+.env
+
+# data & artifacts (never commit)
+data/
+checkpoints/
+*.pt
+*.pth
+*.ckpt
+*.faiss
+*.npy
+*.npz
+*.joblib
+
+# keep small result summaries only
+results/*
+!results/.gitkeep
+!results/*.csv
+!results/*.md
+
+graphify-out/

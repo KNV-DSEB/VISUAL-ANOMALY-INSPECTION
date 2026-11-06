@@ -10,6 +10,8 @@ import pandas as pd
 import torch
 from torch.utils.data import DataLoader
 
+from src.utils.repro import resolve_device
+
 
 class BaseAnomalyMethod(ABC):
     """Abstract base class ensuring all 3 methods share a uniform fit/predict/save contract."""
@@ -19,11 +21,7 @@ class BaseAnomalyMethod(ABC):
 
     def __init__(self, config: dict[str, Any], device: str | torch.device | None = None) -> None:
         self.config = config
-        self.device = (
-            torch.device(device)
-            if device is not None
-            else torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        )
+        self.device = torch.device(device) if device is not None else resolve_device("auto")
         self.threshold_: float | None = None
 
     @abstractmethod

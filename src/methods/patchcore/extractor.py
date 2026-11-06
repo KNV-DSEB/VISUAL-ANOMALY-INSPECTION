@@ -18,6 +18,7 @@ class PatchFeatureExtractor(nn.Module):
         backbone_name: str = "wide_resnet50_2",
         layers: Sequence[str] = ("layer2", "layer3"),
         pretrained: bool = True,
+        weights: str = "IMAGENET1K_V1",
         patch_size: int = 3,
         proj_dim: int | None = 384,
         seed: int = 42,
@@ -27,6 +28,7 @@ class PatchFeatureExtractor(nn.Module):
             backbone_name=backbone_name,
             layers=layers,
             pretrained=pretrained,
+            weights=weights,
         )
         self.patch_size = int(patch_size)
         self.proj_dim = int(proj_dim) if proj_dim else None

@@ -13,7 +13,7 @@ from torch.utils.data import DataLoader
 
 from src.methods.base import BaseAnomalyMethod
 from src.utils.io import ensure_dir, load_json, save_json
-from src.utils.seed import seed_everything
+from src.utils.repro import set_seed
 
 from .model import ConvAutoencoder
 
@@ -59,7 +59,7 @@ class AutoencoderMethod(BaseAnomalyMethod):
         val_loader: DataLoader | None = None,
     ) -> dict[str, Any]:
         """Train on normal images and select best checkpoint strictly by validation loss."""
-        seed_everything(self.seed)
+        set_seed(self.seed)
         optimizer = torch.optim.AdamW(
             self.model.parameters(), lr=self.lr, weight_decay=self.weight_decay
         )

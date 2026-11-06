@@ -2,7 +2,7 @@
 experiment: few_shot_and_false_alarm
 
 sensitivity:
-  methods: [autoencoder, patchcore, one_class]
+  methods: [autoencoder, patchcore, oneclass]
   # Number of normal training images per category (null = full training split)
   sample_counts: [10, 25, 50, 100, null]
   seed: 42

@@ -5,6 +5,7 @@ backbone:
   name: wide_resnet50_2   # Can switch to resnet18 for lightweight runs
   layers: [layer2, layer3]
   pretrained: true
+  weights: IMAGENET1K_V1  # pinned torchvision weights (as in the original PatchCore)
 
 patch:
   patch_size: 3           # Local 3x3 average pooling to capture spatial neighborhood

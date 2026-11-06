@@ -33,6 +33,7 @@ class PatchCoreMethod(BaseAnomalyMethod):
         self.backbone_name = str(b_cfg.get("name", "wide_resnet50_2"))
         self.layers = list(b_cfg.get("layers", ["layer2", "layer3"]))
         self.pretrained = bool(b_cfg.get("pretrained", True))
+        self.weights = str(b_cfg.get("weights", "IMAGENET1K_V1"))
 
         self.patch_size = int(p_cfg.get("patch_size", 3))
         self.proj_dim = p_cfg.get("proj_dim", 384)
@@ -49,6 +50,7 @@ class PatchCoreMethod(BaseAnomalyMethod):
             backbone_name=self.backbone_name,
             layers=self.layers,
             pretrained=self.pretrained,
+            weights=self.weights,
             patch_size=self.patch_size,
             proj_dim=self.proj_dim,
             seed=self.patch_seed,
@@ -85,6 +87,7 @@ class PatchCoreMethod(BaseAnomalyMethod):
         self.memory_bank_ = torch.from_numpy(coreset_bank).to(self.device)
         self.bank_stats_ = {
             "backbone": self.backbone_name,
+            "weights": self.weights if self.pretrained else None,
             "layers": self.layers,
             "raw_embed_dim": self.feature_extractor.raw_embed_dim_,
             "embed_dim": int(coreset_bank.shape[1]),

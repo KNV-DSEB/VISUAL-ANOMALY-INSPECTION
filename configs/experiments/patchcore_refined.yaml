@@ -1,10 +1,12 @@
-# Refined PatchCore configuration for I-02 (higher coreset coverage + finer neighborhood)
+# Refined PatchCore configuration for I-02 (higher coreset coverage + finer neighborhood).
+# Declared in advance. Report it next to the baseline; never pick the winner on the official test set.
 method: patchcore
 
 backbone:
   name: wide_resnet50_2
   layers: [layer2, layer3]
   pretrained: true
+  weights: IMAGENET1K_V1
 
 patch:
   patch_size: 3

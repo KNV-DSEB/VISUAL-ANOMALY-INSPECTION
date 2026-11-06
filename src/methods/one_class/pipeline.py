@@ -12,7 +12,7 @@ from pathlib import Path
 import joblib
 import pandas as pd
 
-from src.data.mvtec import REPO_ROOT, MVTecDataset, build_manifest
+from src.data.mvtec import REPO_ROOT, MVTecDataset, build_manifest, subsample_train_manifest
 from src.evaluation import Predictions
 from src.utils.repro import environment_info, resolve_device, set_seed
 
@@ -30,14 +30,7 @@ def _resolve(path) -> Path:
 def subsample_train(manifest: pd.DataFrame, category: str, max_train: int | None,
                     seed: int) -> pd.DataFrame:
     """Keep at most max_train train/good images of one category (seeded); other rows untouched."""
-    if max_train is None:
-        return manifest
-    is_train = (manifest["split"] == "train") & (manifest["category"] == category)
-    train = manifest[is_train]
-    if max_train >= len(train):
-        return manifest
-    keep = train.sample(n=max_train, random_state=seed).index
-    return manifest[~is_train | manifest.index.isin(keep)]
+    return subsample_train_manifest(manifest, max_train, seed, categories=[category])
 
 
 def run_category(category: str, cfg: dict, protocol: dict, manifest: pd.DataFrame,

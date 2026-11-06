@@ -81,6 +81,30 @@ def _row(root: Path, img: Path, cat: str, split: str, defect: str) -> dict:
     }
 
 
+def subsample_train_manifest(
+    manifest: pd.DataFrame,
+    max_train_samples: int | None,
+    seed: int = 42,
+    categories: list[str] | None = None,
+) -> pd.DataFrame:
+    """Keep at most `max_train_samples` normal train images per category (few-shot study).
+
+    Only rows with split == "train" are reduced; val and test stay untouched so results remain
+    comparable across sample counts. Seeded and deterministic. Returns `manifest` itself when
+    there is nothing to cap.
+    """
+    if max_train_samples is None or max_train_samples <= 0:
+        return manifest
+    keep = pd.Series(True, index=manifest.index)
+    for cat in categories or list(manifest["category"].unique()):
+        idx = list(manifest.index[(manifest["split"] == "train") & (manifest["category"] == cat)])
+        if len(idx) > max_train_samples:
+            chosen = set(random.Random(f"{seed}-subsample-{cat}-{max_train_samples}")
+                         .sample(idx, max_train_samples))
+            keep.loc[[i for i in idx if i not in chosen]] = False
+    return manifest[keep]
+
+
 def build_transforms(protocol: dict):
     pre = protocol["preprocessing"]
     norm = pre["normalize"]
@@ -99,7 +123,7 @@ def build_transforms(protocol: dict):
 
 
 class MVTecDataset(Dataset):
-    """Returns dict(image [3,H,W], mask [1,H,W] in {0,1}, label, category, defect_type, path)."""
+    """Returns dict(image [3,H,W], mask [1,H,W] in {0,1}, label, category, defect_type, path, split)."""
 
     def __init__(self, protocol: dict, split: str, categories: list[str] | None = None,
                  manifest: pd.DataFrame | None = None):
@@ -134,4 +158,5 @@ class MVTecDataset(Dataset):
             "category": row["category"],
             "defect_type": row["defect_type"],
             "path": row["path"],
+            "split": row["split"],
         }

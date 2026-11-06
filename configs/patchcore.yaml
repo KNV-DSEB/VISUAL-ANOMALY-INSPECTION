@@ -1,0 +1,23 @@
+# PatchCore-style feature memory configuration (PC-01, PC-02)
+method: patchcore
+
+backbone:
+  name: wide_resnet50_2   # Can switch to resnet18 for lightweight runs
+  layers: [layer2, layer3]
+  pretrained: true
+
+patch:
+  patch_size: 3           # Local 3x3 average pooling to capture spatial neighborhood
+  proj_dim: 384           # Deterministic random projection dim (null to disable)
+  seed: 42
+
+coreset:
+  ratio: 0.10             # Keep 10% representative patches via k-Center Greedy
+  max_patches: 10000      # Upper cap on memory bank size per category
+  seed: 42
+
+scoring:
+  n_neighbors: 9          # k-NN for density-aware reweighting (PatchCore Eq. 6)
+  gaussian_sigma: 4.0     # Gaussian smoothing on upsampled 224x224 anomaly map
+  batch_size: 8
+  num_workers: 0

@@ -1,0 +1,12 @@
+# Shared evaluation settings. Same file for AE / PatchCore / One-class.
+pred_dir: results/predictions      # <pred_dir>/<method>/<category>_<split>.npz
+out_dir: results/metrics
+methods: [autoencoder, patchcore, oneclass]
+# Used only if configs/protocol.yaml has no top-level `categories` key.
+categories: [bottle, carpet, leather, screw, transistor]
+threshold_percentile: 95.0         # P95 of validation normal scores (revisit on val only)
+pixel_metrics: true
+compute_pro: true
+pro_fpr_limit: 0.3
+pixel_auroc_max_pixels: null       # e.g. 5000000 to bound memory
+seed: 42

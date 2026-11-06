@@ -7,11 +7,18 @@ We implement, validate, and compare three anomaly detection approaches trained *
 2. **PatchCore-style Feature Memory (`patchcore`)** — multi-scale local patch embeddings (`layer2 + layer3`), k-Center Greedy coreset subsampling, density-reweighted k-NN scoring, and pixel-level localization maps.
 3. **One-Class Classification (`one_class`)** — multi-scale global CNN representations (`StandardScaler + PCA + One-Class SVM`).
 
-**Extensions included:**
-- Pixel-level defect localization evaluated with both **Pixel AUROC** and **Per-Region Overlap (PRO)**.
-- Systematic sensitivity study as normal training sample counts drop ($N \in \{10, 25, 50, 100, \text{full}\}$).
-- Asymmetric **false-alarm vs. missed-defect cost analysis** across validation percentile operating points.
-- Interactive **3-Tab Gradio Industrial QA Dashboard** (`demo/app.py`) ready for local execution or **Hugging Face Spaces** deployment.
+---
+
+## Headline Benchmark Results (5 MVTec AD Categories: `bottle`, `carpet`, `leather`, `screw`, `transistor`)
+
+| Run / Method | Image AUROC $\uparrow$ | F1 (Val P95) $\uparrow$ | Precision $\uparrow$ | Recall $\uparrow$ | FPR $\downarrow$ | Pixel AUROC $\uparrow$ | Pixel PRO $\uparrow$ | Latency (ms/img) $\downarrow$ | Artifact (MB/cat) $\downarrow$ |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| **Autoencoder (`autoencoder`)** | 0.6823 | 0.5212 | 0.8097 | 0.4734 | 0.3295 | 0.7916 | 0.6133 | **47.41** | **3.40** |
+| **One-Class SVM (`one_class`)** | 0.8046 | 0.7149 | 0.8022 | 0.7007 | 0.1972 | — | — | 52.74 | 9.48 |
+| **PatchCore (`patchcore`)** | **0.9702** | **0.8692** | 0.9441 | **0.8296** | 0.1057 | **0.9820** | 0.9291 | 56.99 | 15.66 |
+| **PatchCore Refined (`patchcore_refined`)** | 0.9674 | 0.8519 | **0.9462** | 0.7974 | **0.0896** | 0.9819 | **0.9298** | 59.89 | 29.92 |
+
+*(Full per-category tables, defect-type breakdowns, sample-count sensitivity curves, and false-alarm cost analyses are stored in [`results/metrics/`](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/results/metrics/main_comparison_table.csv) and [`results/figures/`](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/results/figures/sample_sensitivity_curve.png)).*
 
 ---
 
@@ -45,7 +52,7 @@ VISUAL-ANOMALY-INSPECTION/
 ├── notebooks/
 │   └── colab_runner.ipynb             # 1-click Google Colab GPU execution notebook
 ├── docs/                              # Protocol specification, Proposal, Milestone & Final Report outlines
-├── results/                           # Lightweight CSV metric tables & figures
+├── results/                           # Lightweight CSV metric tables & figures (committed to git)
 └── tests/                             # Fast, low-RAM unit & smoke tests (pytest)
 ```
 
@@ -67,7 +74,7 @@ python -m pytest -v
 ## 3. Running Full Experiments (Local GPU or Google Colab)
 
 ### Option A: Running on Google Colab (Recommended for Low-RAM / No-GPU Machines)
-Open [notebooks/colab_runner.ipynb](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/notebooks/colab_runner.ipynb) in Google Colab (Runtime $\rightarrow$ Change runtime type $\rightarrow$ **T4 GPU**) and click **Run all**. It automatically mounts Google Drive, downloads the 5 MVTec AD categories, trains all methods, runs evaluation/galleries/sensitivity, and packages `results_package.zip`.
+Open [notebooks/colab_runner.ipynb](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/notebooks/colab_runner.ipynb) in Google Colab (Runtime $\rightarrow$ Change runtime type $\rightarrow$ **T4 GPU**) and click **Run all**.
 
 ### Option B: Running via CLI Commands
 ```bash
@@ -105,8 +112,7 @@ python scripts/predict_single.py \
     --image path/to/image.png \
     --category bottle \
     --method patchcore \
-    --output-dir results/single_inspection \
-    --allow-fallback
+    --output-dir results/single_inspection
 ```
 
 ### Launching the 3-Tab Gradio Web UI Locally
@@ -118,4 +124,4 @@ Then open `http://127.0.0.1:7860` in your browser.
 ### Deploying to Hugging Face Spaces (So the Instructor Can Open Directly via Link)
 1. Create a new **Space** on [Hugging Face Spaces](https://huggingface.co/spaces) and select **Gradio** as the Space SDK.
 2. In your Space settings or `README.md` YAML header, set `app_file: demo/app.py`.
-3. Push this repository (along with your lightweight trained checkpoints in `artifacts/checkpoints/` if desired, or let the built-in sample gallery + fallback mode run automatically) to the Space repository.
+3. Push this repository (along with `artifacts/checkpoints/autoencoder`, `artifacts/checkpoints/patchcore`, `artifacts/checkpoints/one_class` if using Git LFS on HF Spaces, or let the built-in sample gallery run automatically).

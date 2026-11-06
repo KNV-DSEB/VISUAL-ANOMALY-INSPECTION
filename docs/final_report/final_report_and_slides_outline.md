@@ -1,51 +1,74 @@
-# Final Report (6–8 Pages) & 15-Minute Presentation Guide (F-02, F-03)
+# Final Report (6–8 Pages) & 15-Minute Presentation Guide — With Official Experimental Numbers (F-02, F-03)
+
+Tài liệu này tổng hợp đầy đủ **số liệu thực nghiệm chính thức** từ thư mục [results/metrics/](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/results/metrics/main_comparison_table.csv) và [results/figures/](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/results/figures/sample_sensitivity_curve.png) để nhóm đưa trực tiếp vào bài báo cáo cuối kỳ 6–8 trang và bộ Slide thuyết trình 15 phút.
 
 ---
 
-## Phần 1: Cấu trúc Báo cáo cuối kỳ 6–8 trang (Conference Format — IEEE / CVPR 2 cột)
+## Phần 1: Các Bảng Số Liệu Chính Thức Dùng Cho Báo Cáo & Slide
+
+### 1. Bảng so sánh tổng thể (Main Comparison — E-02 & I-02)
+*(Trung bình trên 5 categories: `bottle`, `carpet`, `leather`, `screw`, `transistor` tại ngưỡng chuẩn Validation P95)*
+
+| Method | Image AUROC $\uparrow$ | F1 (P95) $\uparrow$ | Precision $\uparrow$ | Recall $\uparrow$ | FPR $\downarrow$ | Pixel AUROC $\uparrow$ | Pixel PRO $\uparrow$ | Latency (ms/img) $\downarrow$ | Artifact (MB/cat) $\downarrow$ | Fit Time (s) $\downarrow$ |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| **Autoencoder** | 0.6823 | 0.5212 | 0.8097 | 0.4734 | 0.3295 | 0.7916 | 0.6133 | **47.41** | **3.40** | 2410.60 |
+| **One-Class SVM** | 0.8046 | 0.7149 | 0.8022 | 0.7007 | 0.1972 | — | — | 52.74 | 9.48 | **51.30** |
+| **PatchCore (Baseline)** | **0.9702** | **0.8692** | 0.9441 | **0.8296** | 0.1057 | **0.9820** | 0.9291 | 56.99 | 15.66 | 310.53 |
+| **PatchCore (Refined — I-02)** | 0.9674 | 0.8519 | **0.9462** | 0.7974 | **0.0896** | 0.9819 | **0.9298** | 59.89 | 29.92 | 566.11 |
+
+### 2. Bảng độ nhạy theo số lượng mẫu huấn luyện Normal (Sample-Count Sensitivity — I-01)
+*(Nguồn: [results/metrics/sample_sensitivity.csv](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/results/metrics/sample_sensitivity.csv) & [results/figures/sample_sensitivity_curve.png](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/results/figures/sample_sensitivity_curve.png))*
+
+| Số mẫu Normal / Category ($N$) | AE Image AUROC | AE Pixel PRO | OC-SVM Image AUROC | PatchCore Image AUROC | PatchCore Pixel AUROC | PatchCore Pixel PRO |
+|---|---:|---:|---:|---:|---:|---:|
+| **$N = 10$ mẫu** | 0.6126 | 0.4609 | 0.8115 | **0.8793** | **0.9662** | **0.8862** |
+| **$N = 25$ mẫu** | 0.6401 | 0.5122 | 0.7954 | **0.9045** | **0.9764** | **0.9072** |
+| **$N = 50$ mẫu** | 0.6516 | 0.5259 | 0.8009 | **0.9229** | **0.9776** | **0.9155** |
+| **$N = 100$ mẫu** | 0.6879 | 0.5630 | 0.8061 | **0.9434** | **0.9815** | **0.9274** |
+| **Full ($\approx 167\text{–}256$ mẫu)** | 0.6770 | 0.6059 | 0.8046 | **0.9702** | **0.9820** | **0.9291** |
+
+> [!TIP]
+> **Insight quan trọng cho Báo cáo & Thuyết trình:**
+> Ngay cả khi chỉ có **10 bức ảnh normal mỗi category ($N=10$)**, `PatchCore` vẫn đạt **`Image AUROC = 0.8793`**, **`Pixel AUROC = 0.9662`** và **`Pixel PRO = 0.8862`** — vượt xa `Autoencoder` được huấn luyện trên toàn bộ dữ liệu (`Image AUROC = 0.6823`, `Pixel PRO = 0.6133`)! Lý do là 10 bức ảnh normal đã cung cấp $10 \times 28 \times 28 = 7.840$ patch cục bộ có đặc trưng tiền huấn luyện giàu ngữ nghĩa.
+
+### 3. Bảng phân tích chi phí Báo động giả vs. Bỏ lọt lỗi trên PatchCore (False-Alarm Cost Trade-off — I-01)
+*(Nguồn: [results/metrics/false_alarm_cost.csv](file:///d:/code/Python/DSEB_ex/ComputerVision/VISUAL-ANOMALY-INSPECTION/results/metrics/false_alarm_cost.csv) — Trung bình trên 5 categories)*
+
+| Validation Percentile | Mean Threshold | FPR (False Alarm) $\downarrow$ | Defect Recall (TPR) $\uparrow$ | Precision $\uparrow$ | Mean F1 $\uparrow$ | Cost ($C_{\text{FN}}/C_{\text{FP}} = 1$) $\downarrow$ | Cost ($C_{\text{FN}}/C_{\text{FP}} = 5$) $\downarrow$ | Cost ($C_{\text{FN}}/C_{\text{FP}} = 10$) $\downarrow$ |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| **P80.0** | 6.7057 | 29.35% | **95.80%** | 88.32% | 0.9152 | 0.1155 | **0.2410** | **0.3979** |
+| **P85.0** | 6.8136 | 24.58% | 95.40% | 89.99% | 0.9229 | 0.1044 | 0.2417 | 0.4134 |
+| **P90.0 (Tối ưu F1)** | 7.0390 | 18.24% | 94.73% | 92.59% | **0.9332** | **0.0904** | 0.2478 | 0.4445 |
+| **P92.5** | 7.1574 | 13.65% | 90.88% | 94.02% | 0.9191 | 0.0998 | 0.3441 | 0.6496 |
+| **P95.0 (Baseline)** | 7.3661 | 10.57% | 82.96% | 94.41% | 0.8692 | 0.1372 | 0.5624 | 1.0939 |
+| **P97.5** | 7.7094 | 6.74% | 73.19% | 96.17% | 0.7914 | 0.1844 | 0.8459 | 1.6728 |
+| **P99.0** | 7.9488 | **2.54%** | 69.06% | **97.26%** | 0.7516 | 0.1998 | 0.9636 | 1.9184 |
+
+---
+
+## Phần 2: Cấu trúc Báo cáo cuối kỳ 6–8 trang (Conference Format)
 
 1. **Abstract (~150–200 từ):**
-   - Bối cảnh kiểm định chất lượng công nghiệp khi thiếu mẫu lỗi; mô tả ngắn gọn giao thức so sánh 3 phương pháp (Autoencoder, PatchCore, One-Class SVM) trên 5 categories của MVTec AD; tóm tắt kết quả định lượng nổi bật nhất (Image AUROC, Pixel PRO, độ nhạy ít mẫu và phân tích chi phí).
-2. **Section 1: Introduction & Problem Formulation (0.75 trang):**
-   - Tại sao bài toán phát hiện lỗi công nghiệp phải giải bằng One-Class / Unsupervised learning.
-   - Đóng góp thực nghiệm của nhóm: (1) Bộ khung đánh giá công bằng chống rò rỉ dữ liệu test; (2) Đối chiếu 3 họ phương pháp về cả độ chính xác, định vị điểm ảnh và tốc độ/dung lượng; (3) Nghiên cứu suy giảm hiệu năng khi số mẫu normal giảm về 10 mẫu và bài toán tối ưu chi phí báo động giả.
-3. **Section 2: Dataset & Experimental Protocol (0.75 trang):**
-   - Bảng thống kê 5 categories (`bottle`, `carpet`, `leather`, `screw`, `transistor`), quy trình tiền xử lý $224 \times 224$, cách chia `train` (80% normal) / `val` (20% normal) / `test` và quy tắc chọn ngưỡng `P95`.
-4. **Section 3: Compared Anomaly Detection Methods (1.5 trang):**
-   - Sơ đồ khối kiến trúc chung.
-   - *3.1 Convolutional Autoencoder:* Cấu trúc mạng, hàm loss $\text{MSE} + 0.5 L_1$, cơ chế gom điểm `topk_mean`.
-   - *3.2 PatchCore Feature Memory:* Trích xuất patch đa tầng (`layer2`, `layer3`), thuật toán k-Center Greedy Coreset và điểm k-NN có trọng số mật độ.
-   - *3.3 One-Class SVM:* Đặc trưng toàn cục đa tầng (`avg + max` pooling), chuẩn hóa `StandardScaler + PCA(0.95)` và biên quyết định RBF.
+   - Nêu bài toán kiểm định ngoại quan công nghiệp khi hiếm mẫu lỗi; trình bày giao thức đánh giá thống nhất trên 5 categories MVTec AD cho 3 phương pháp (`Autoencoder`, `PatchCore`, `One-Class SVM`); tóm tắt kết quả định lượng: `PatchCore` dẫn đầu với `Image AUROC = 0.9702`, `Pixel AUROC = 0.9820`, `Pixel PRO = 0.9291` và duy trì `Pixel PRO = 0.8862` ngay cả khi chỉ dùng 10 ảnh normal/category.
+2. **Section 1: Introduction & Problem Formulation (0.75 trang)**
+3. **Section 2: Dataset & Experimental Protocol (0.75 trang)**
+4. **Section 3: Compared Anomaly Detection Methods (1.5 trang)**
 5. **Section 4: Quantitative Results & Localization Analysis (1.75 trang):**
-   - Bảng so sánh tổng thể (`main_comparison_table.csv`) và phân tích từng category.
-   - Bảng định vị điểm ảnh (`pixel_localization_table.csv` — `Pixel AUROC` & `PRO`) kèm Hình Gallery 4 cột (`Input | GT Mask | AE | PatchCore`) chỉ rõ ca thành công và ca thất bại (`screw`, `transistor`).
+   - Đưa Bảng 1, Bảng 2, Bảng 3 và nhúng các hình Gallery từ `results/figures/gallery_*.png`.
 6. **Section 5: Extensions — Sample Sensitivity, Cost Analysis & Refinement (1.5 trang):**
-   - *5.1 Normal-Sample Count Sensitivity (`I-01`):* Đồ thị suy giảm `Image AUROC` và `Pixel PRO` tại $N \in \{10, 25, 50, 100, \text{full}\}$. Phân tích vì sao PatchCore giữ vững hiệu năng ở $N=10, 25$ tốt hơn Autoencoder.
-   - *5.2 Asymmetric False-Alarm Cost Analysis (`I-01`):* Đường cong đánh đổi $\text{FPR}$ vs. $\text{Recall}$ và cách chọn ngưỡng tối ưu theo tỷ lệ chi phí $C_{\text{FN}}/C_{\text{FP}} \in \{1, 5, 10\}$.
-   - *5.3 Method Refinement (`I-02`) & Interactive Gradio System (`DM-01`):* So sánh `patchcore` baseline với `patchcore_refined` và minh họa giao diện Demo 3 Tab.
-7. **Section 6: Limitations & Conclusion (0.5 trang):**
-   - Hạn chế thực tế (vật thể xoay góc trên `screw`, lỗi sai vị trí logic trên `transistor`, ngưỡng `P95` cố định ~5% FPR khi tập `val` nhỏ) và kết luận.
+   - Đưa Bảng độ nhạy ít mẫu + hình `sample_sensitivity_curve.png` và Bảng chi phí báo động giả + hình `false_alarm_cost_patchcore.png`.
+   - Phân tích cấu hình tinh chỉnh `patchcore_refined` (giúp tăng F1 trên `screw` từ `0.6667` $\rightarrow$ `0.7128` và giảm FPR trung bình từ `10.57%` xuống `8.96%`) cùng hệ thống Demo Gradio 3 Tab.
+7. **Section 6: Limitations & Conclusion (0.5 trang)**
 
 ---
 
-## Phần 2: Kịch bản Slide thuyết trình 15 phút cho 6 thành viên (F-03)
+## Phần 3: Kịch bản Slide thuyết trình 15 phút cho 6 thành viên (F-03)
 
-| Thời lượng | Người trình bày | Nội dung Slide | Điểm nhấn cần nói rõ |
+| Thời lượng | Người trình bày | Nội dung Slide | Điểm nhấn số liệu cần nói rõ |
 |---|---|---|---|
-| **0:00 – 2:30** | **1. Vũ** | **Bài toán, Dữ liệu MVTec AD & Giao thức Đánh giá** | Nêu bài toán thiếu mẫu lỗi trong nhà máy; lý do chọn 5 categories đại diện; nhấn mạnh nguyên tắc **không dùng tập Test để chọn threshold**. |
-| **2:30 – 5:00** | **2. Vũ & Phong** | **Phương pháp 1 (Autoencoder) & Phương pháp 3 (One-Class SVM)** | Giải thích trực quan cách Autoencoder phát hiện lỗi qua sai số tái tạo (`topk_mean`) và cách One-Class SVM bao bọc miền đặc trưng normal. |
-| **5:00 – 7:30** | **3. Hoàng** | **Phương pháp 2 (PatchCore) & Tinh chỉnh `I-02`** | Giải thích vì sao đặc trưng cục bộ cấp độ patch (`layer2+layer3`) + nén Coreset k-Center Greedy giúp bắt được cả vết xước nhỏ mà vẫn chạy nhanh. |
-| **7:30 – 10:00** | **4. Kiên** | **Kết quả Thực nghiệm, Phân tích Lỗi & Độ nhạy ít mẫu (`I-01`)** | Trình bày bảng so sánh 3 methods; chỉ ra sự suy giảm khi giảm số mẫu normal xuống 10 mẫu và bài toán tối ưu chi phí báo động giả. |
-| **10:00 – 12:30** | **5. Huy** | **Định vị vùng lỗi (Pixel AUROC vs. PRO) & Live Demo Gradio** | Giải thích ý nghĩa chỉ số `PRO`; chiếu Gallery 4 cột và **mở trực tiếp Demo Gradio trên Hugging Face Spaces** bấm thử 1–2 ảnh. |
-| **12:30 – 15:00** | **6. Khánh** | **Hạn chế, Bài học Kỹ thuật & Kết luận** | Tổng kết khi nào nên dùng mỗi phương pháp trong thực tế công nghiệp, nêu thẳng thắn các ca lỗi khó (`screw`, `transistor`) và mở đầu phiên Q&A. |
-
----
-
-## Phần 3: Bộ câu hỏi phản biện dự kiến từ giảng viên (Q&A Checklist)
-
-1. **Hỏi:** *Tại sao các em chọn ngưỡng ở phân vị thứ 95 (`P95`) trên tập Validation? Điều này dẫn tới hệ quả gì trên tập Test?*
-   - **Trả lời:** Vì trong bài toán One-Class, tập `val` chỉ chứa ảnh normal nên không thể tối ưu F1 trên `val`. Chọn `P95` đồng nghĩa với việc chấp nhận tỷ lệ báo động giả kỳ vọng trên phân phối normal là $\approx 5\%$. Trong mục `I-01`, nhóm đã mở rộng phân tích trên dải phân vị từ `P80` đến `P99.5` gắn với tỷ lệ chi phí $C_{\text{FN}}/C_{\text{FP}}$ để nhà máy chọn ngưỡng phù hợp.
-2. **Hỏi:** *Tại sao phải tính thêm chỉ số `PRO` trong khi đã có `Pixel AUROC`?*
-   - **Trả lời:** Trên cùng một category, một vết bẩn lớn có thể chiếm 5.000 pixels trong khi một vết xước nhỏ chỉ chiếm 50 pixels. `Pixel AUROC` gộp chung mọi pixel nên mô hình đoán đúng vết lỗi lớn mà bỏ sót hoàn toàn vết xước nhỏ vẫn đạt `Pixel AUROC > 0.95`. Ngược lại, `PRO` tính độ phủ trên từng vùng liên thông rồi lấy trung bình đều giữa các vùng, nên phản ánh trung thực khả năng bắt lỗi nhỏ.
-3. **Hỏi:** *Khi số lượng ảnh normal giảm xuống còn 10 hoặc 25 ảnh (`I-01`), phương pháp nào sụt giảm mạnh nhất và tại sao?*
-   - **Trả lời:** Autoencoder sụt giảm mạnh hơn vì phải huấn luyện các tầng tích chập từ đầu để học tái tạo ảnh nên dễ bị overfitting khi chỉ có 10–25 ảnh. Ngược lại, PatchCore tận dụng bộ trích xuất đặc trưng đã tiền huấn luyện trên ImageNet (không cần train lại trọng số mạng) và so khớp trực tiếp ở cấp độ patch cục bộ (10 ảnh vẫn cung cấp hàng nghìn patch normal), nên giữ độ ổn định cao hơn nhiều.
+| **0:00 – 2:30** | **1. Vũ** | **Bài toán, Dữ liệu MVTec AD & Giao thức Đánh giá** | 5 categories (1.267 ảnh train/val normal, 584 ảnh test); tách 20% `val` chọn ngưỡng `P95`, chống rò rỉ dữ liệu test 100%. |
+| **2:30 – 5:00** | **2. Vũ & Phong** | **Autoencoder & One-Class SVM** | Autoencoder (`Image AUROC = 0.6823`, nhanh nhất `47.4 ms`, nhẹ nhất `3.4 MB` nhưng yếu trên `carpet`); One-Class SVM (`Image AUROC = 0.8046`, fit chỉ `51s`, đạt `1.000` trên `leather` nhưng yếu trên `screw`). |
+| **5:00 – 7:30** | **3. Hoàng** | **PatchCore & Tinh chỉnh `I-02`** | `PatchCore` đạt `Image AUROC = 0.9702`, `bottle = 1.000`; bản `patchcore_refined` (tăng coreset 20%, $k=5$) nâng F1 trên category khó nhất `screw` từ `0.6667` lên `0.7128` và giảm FPR xuống `8.96%`. |
+| **7:30 – 10:00** | **4. Kiên** | **Phân tích Lỗi, Độ nhạy ít mẫu & Chi phí (`I-01`)** | Khi giảm về $N=10$ ảnh normal, PatchCore vẫn đạt `PRO = 0.8862`; phân tích chi phí chỉ ra hạ ngưỡng xuống `P90` giúp nâng Mean F1 từ `0.8692` lên `0.9332` và giảm chi phí kỳ vọng xuống thấp nhất. |
+| **10:00 – 12:30** | **5. Huy** | **Định vị vùng lỗi (`Pixel AUROC` vs. `PRO`) & Live Demo Gradio** | PatchCore đạt `Pixel AUROC = 0.9820`, `PRO = 0.9291` (vượt AE `+31.6% PRO`); chiếu Gallery 4 cột và **demo trực tiếp giao diện Gradio 3 Tab**. |
+| **12:30 – 15:00** | **6. Khánh** | **Hạn chế, Bài học Kỹ thuật & Kết luận** | Tổng kết đánh đổi Độ chính xác – Tốc độ – Dung lượng giữa 3 phương pháp, nêu hạn chế khi vật thể xoay (`screw`) và mở đầu Q&A. |

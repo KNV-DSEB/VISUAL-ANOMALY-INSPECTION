@@ -43,7 +43,6 @@ def ensure_sample_examples(protocol: dict[str, Any]) -> list[list[Any]]:
         if examples:
             return examples
 
-    # Generate lightweight synthetic sample parts in demo/examples/ when dataset is not on disk
     ex_dir = ensure_dir(REPO_ROOT / "demo" / "examples")
     rng = np.random.default_rng(42)
     palette = {
@@ -66,7 +65,6 @@ def ensure_sample_examples(protocol: dict[str, Any]) -> list[list[Any]]:
             Image.fromarray(good_img).save(good_path)
 
             def_img = good_img.copy()
-            # Bright localized scratch + structural stain
             cv2.line(def_img, (88, 92), (168, 162), (250, 35, 35), 9)
             cv2.circle(def_img, (148, 112), 20, (20, 245, 240), -1)
             Image.fromarray(def_img).save(defect_path)
@@ -209,26 +207,47 @@ def run_tab3_cost_simulator(
     c_fn: float,
 ) -> tuple[str, pd.DataFrame, Image.Image | None]:
     """Interactive factory false-alarm vs. missed-defect cost simulator (I-01)."""
-    rng = np.random.default_rng(42)
-    val_scores = rng.normal(0.25, 0.08, size=100).clip(0.05, 0.60)
-    test_normal = rng.normal(0.26, 0.09, size=60).clip(0.05, 0.65)
-    test_defect = rng.normal(0.55, 0.14, size=60).clip(0.20, 0.98)
-
-    test_labels = np.concatenate([np.zeros(60, dtype=int), np.ones(60, dtype=int)])
-    test_scores = np.concatenate([test_normal, test_defect])
-
     ratio = float(c_fn) / max(float(c_fp), 1e-6)
-    cost_df = analyze_false_alarm_cost(
-        test_labels=test_labels,
-        test_scores=test_scores,
-        val_scores=val_scores,
-        cost_ratios=(1.0, ratio),
-        percentiles=(80.0, 85.0, 90.0, 92.5, 95.0, 97.5, 99.0),
-    )
-    ratio_col = [c for c in cost_df.columns if c.startswith("cost_ratio_")][-1]
-    cost_df["expected_dollar_cost_per_part"] = (
-        float(c_fp) * cost_df["fp"] + float(c_fn) * cost_df["fn"]
-    ) / len(test_labels)
+    saved_cost_csv = REPO_ROOT / "results" / "metrics" / "false_alarm_cost.csv"
+
+    if saved_cost_csv.exists():
+        raw_cost = pd.read_csv(saved_cost_csv)
+        pc_mean = raw_cost[
+            (raw_cost["run_name"] == "patchcore") & (raw_cost["category"] == "mean")
+        ].copy()
+        if not pc_mean.empty:
+            n_avg_test = 584.0 / 5.0
+            pc_mean["expected_dollar_cost_per_part"] = (
+                float(c_fp) * pc_mean["fp"] + float(c_fn) * pc_mean["fn"]
+            ) / n_avg_test
+            pc_mean[f"cost_ratio_{ratio:.1f}"] = (
+                1.0 * pc_mean["fp"] + ratio * pc_mean["fn"]
+            ) / n_avg_test
+            cost_df = pc_mean.reset_index(drop=True)
+        else:
+            cost_df = pd.DataFrame()
+    else:
+        cost_df = pd.DataFrame()
+
+    if cost_df.empty:
+        rng = np.random.default_rng(42)
+        val_scores = rng.normal(0.25, 0.08, size=100).clip(0.05, 0.60)
+        test_normal = rng.normal(0.26, 0.09, size=60).clip(0.05, 0.65)
+        test_defect = rng.normal(0.55, 0.14, size=60).clip(0.20, 0.98)
+
+        test_labels = np.concatenate([np.zeros(60, dtype=int), np.ones(60, dtype=int)])
+        test_scores = np.concatenate([test_normal, test_defect])
+
+        cost_df = analyze_false_alarm_cost(
+            test_labels=test_labels,
+            test_scores=test_scores,
+            val_scores=val_scores,
+            cost_ratios=(1.0, ratio),
+            percentiles=(80.0, 85.0, 90.0, 92.5, 95.0, 97.5, 99.0),
+        )
+        cost_df["expected_dollar_cost_per_part"] = (
+            float(c_fp) * cost_df["fp"] + float(c_fn) * cost_df["fn"]
+        ) / len(test_labels)
 
     best_idx = int(cost_df["expected_dollar_cost_per_part"].idxmin())
     best_row = cost_df.loc[best_idx]
@@ -242,7 +261,7 @@ def run_tab3_cost_simulator(
     pil_plot = Image.open(tmp_fig).convert("RGB")
 
     rec_md = (
-        f"### 💡 Khuyến nghị Operating Point cho Nhà máy\n"
+        f"### 💡 Khuyến nghị Operating Point cho Nhà máy (trên dữ liệu MVTec AD — PatchCore)\n"
         f"- Với chi phí **Báo động giả ($C_{{\\text{{FP}}}} = \\${c_fp:.1f}$)** và chi phí **Bỏ lọt hàng lỗi ($C_{{\\text{{FN}}}} = \\${c_fn:.1f}$)** "
         f"(tỷ lệ $C_{{\\text{{FN}}}}/C_{{\\text{{FP}}}} = {ratio:.1f}\\times$):\n"
         f"- **Ngưỡng phân vị Validation tối ưu:** **P{best_row['percentile']:.1f}** (`threshold = {best_row['threshold']:.4f}`)\n"
@@ -299,9 +318,9 @@ def build_demo_app() -> gr.Blocks:
                             )
                             in_custom_thr = gr.Slider(
                                 minimum=-1.0,
-                                maximum=5.0,
-                                value=0.5,
-                                step=0.01,
+                                maximum=12.0,
+                                value=7.2,
+                                step=0.05,
                                 label="Custom Anomaly Threshold",
                             )
                             in_alpha = gr.Slider(

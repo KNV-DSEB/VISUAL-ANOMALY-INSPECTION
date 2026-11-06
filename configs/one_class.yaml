@@ -1,0 +1,25 @@
+# One-Class Classification configuration (OC-01, OC-02)
+method: one_class
+
+backbone:
+  name: wide_resnet50_2   # Can switch to resnet18 for lightweight runs
+  layers: [layer2, layer3, layer4]
+  pretrained: true
+
+features:
+  pooling: avg_plus_max   # Concatenate global average + global max pooled features
+  use_scaler: true
+  pca_components: 0.95    # Keep 95% variance (or integer N, or null to disable)
+  seed: 42
+
+classifier:
+  # Primary choice: One-Class SVM on multi-scale pretrained features.
+  # Since validation split has normal images only, gamma uses 'scale' heuristic
+  # and nu is aligned with expected validation tail (5%, matching P95 threshold rule).
+  kernel: rbf
+  nu: 0.05
+  gamma: scale
+
+runtime:
+  batch_size: 16
+  num_workers: 0

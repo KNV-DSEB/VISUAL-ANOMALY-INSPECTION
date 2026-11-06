@@ -1,0 +1,29 @@
+# One-class method: frozen ImageNet CNN features (image level) + One-Class SVM.
+# Fit on train/good only. Validation has normal images only, so hyperparameters are fixed
+# a priori here; never change them based on test results.
+#   python scripts/train_oneclass.py --config configs/oneclass.yaml
+#   python scripts/evaluate.py --methods oneclass
+protocol: configs/protocol.yaml
+pred_dir: results/predictions        # must match configs/evaluation.yaml
+checkpoint_dir: checkpoints/oneclass # fitted detectors (joblib), never committed
+seed: 42
+device: auto                         # auto (cuda > mps > cpu) | cuda | mps | cpu
+
+features:
+  backbone: wide_resnet50_2          # fallback: resnet18 (small GPU / CPU)
+  weights: IMAGENET1K_V1             # pinned torchvision weights
+  layers: [layer2, layer3]           # global-average-pooled, concatenated (1536-d for WRN50)
+  batch_size: 32
+  num_workers: 2
+
+model:
+  l2_normalize: true
+  standardize: true
+  pca_components: null               # null = no PCA; int (dims) or float (variance kept)
+  ocsvm:
+    kernel: rbf
+    nu: 0.1
+    gamma: scale
+
+train:
+  max_train: null                    # cap on train/good images (sensitivity study); null = all

@@ -33,6 +33,16 @@ def test_scripts_run_on_saved_predictions(toy):
     assert (tmp / "figs" / "false_alarm_cost_patchcore.png").exists()
 
 
+def test_gallery_heatmaps_share_one_scale():
+    import numpy as np
+
+    from src.utils import normalize_anomaly_map
+
+    quiet = np.random.default_rng(0).uniform(0.0, 1.0, (8, 8))  # a normal image: low scores everywhere
+    assert normalize_anomaly_map(quiet).max() == 1.0  # on its own it is stretched to look hot
+    assert normalize_anomaly_map(quiet, vmin=0.0, vmax=10.0).max() <= 0.1  # on the shared scale it stays cool
+
+
 def test_gallery_examples_follow_the_fixed_rule(toy):
     protocol, tmp = toy
     run_method("patchcore", CFGS["patchcore"], protocol, pred_dir=tmp / "pred", device="cpu")

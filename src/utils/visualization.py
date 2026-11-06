@@ -78,8 +78,10 @@ def save_localization_gallery(
     Each dict in `samples` can contain:
       - image_rgb: uint8 [H, W, 3]
       - gt_mask: [H, W] in {0, 1}
-      - ae_map: optional [H, W] float
-      - patchcore_map: optional [H, W] float
+      - ae_map / patchcore_map: optional [H, W] float
+      - ae_range / patchcore_range: optional (vmin, vmax) so every row of a method shares one color
+        scale. Without it each heatmap is min-max normalised on its own, which makes a normal image
+        look as hot as a defective one.
       - caption: optional str (category / defect_type / verdict)
     """
     out = Path(output_path)
@@ -99,15 +101,12 @@ def save_localization_gallery(
         axes[r, 0].set_ylabel(caption, fontsize=9)
         axes[r, 1].imshow(gt, cmap="gray", vmin=0, vmax=1)
 
-        if sample.get("ae_map") is not None:
-            axes[r, 2].imshow(overlay_heatmap(rgb, sample["ae_map"]))
-        else:
-            axes[r, 2].text(0.5, 0.5, "N/A", ha="center", va="center")
-
-        if sample.get("patchcore_map") is not None:
-            axes[r, 3].imshow(overlay_heatmap(rgb, sample["patchcore_map"]))
-        else:
-            axes[r, 3].text(0.5, 0.5, "N/A", ha="center", va="center")
+        for key, col in (("ae", 2), ("patchcore", 3)):
+            if sample.get(f"{key}_map") is not None:
+                vmin, vmax = sample.get(f"{key}_range") or (None, None)
+                axes[r, col].imshow(overlay_heatmap(rgb, sample[f"{key}_map"], vmin=vmin, vmax=vmax))
+            else:
+                axes[r, col].text(0.5, 0.5, "N/A", ha="center", va="center")
 
         for c in range(4):
             axes[r, c].set_xticks([])

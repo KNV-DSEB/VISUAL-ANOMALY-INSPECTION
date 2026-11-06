@@ -64,6 +64,9 @@ def build_galleries(pred_dir, out_dir, protocol: dict, ae_method: str = "autoenc
 
         index = {key: {p: i for i, p in enumerate(test.paths)} for key, (_, test) in runs.items()}
         thr = {key: percentile_threshold(val, percentile) for key, (val, _) in runs.items()}
+        # one color scale per method and category, so rows are comparable
+        scale = {key: (float(test.anomaly_maps.min()), float(test.anomaly_maps.max()))
+                 for key, (_, test) in runs.items() if test.has_maps}
         samples = []
         for i in choose_examples(primary, max_samples):
             rel = str(primary.paths[i])
@@ -80,6 +83,7 @@ def build_galleries(pred_dir, out_dir, protocol: dict, ae_method: str = "autoenc
             samples.append({
                 "image_rgb": rgb, "gt_mask": primary.gt_masks[i], "ae_map": maps.get("ae"),
                 "patchcore_map": maps.get("pc"),
+                "ae_range": scale.get("ae"), "patchcore_range": scale.get("pc"),
                 "caption": f"{cat}/{defect}\nGT={'DEFECT' if primary.labels[i] else 'NORMAL'} | "
                            f"{' '.join(verdicts)}\n({Path(rel).name})",
             })

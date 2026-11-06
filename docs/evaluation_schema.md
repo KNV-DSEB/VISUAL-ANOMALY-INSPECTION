@@ -35,7 +35,7 @@ Predictions(method="patchcore", category="bottle", split="test",
 ## 2. Quy tắc threshold
 
 - Threshold **per-category** (điểm số giữa các category không so sánh được với nhau).
-- `threshold = percentile(scores của val normal, P)`, mặc định P95 (`configs/evaluation.yaml`).
+- `threshold = percentile(scores của val normal, P)`, mặc định P95 (`threshold.percentile` trong `configs/protocol.yaml`; danh sách category cũng lấy từ protocol).
 - `percentile_threshold()` từ chối nếu split không phải `val` hoặc `val` có ảnh defect, nên không thể vô tình fit trên test.
 - Dự đoán: `score >= threshold` là anomalous.
 - Metric phụ thuộc threshold (precision, recall, F1, false-alarm rate) chỉ dùng threshold này. AUROC / pixel AUROC / PRO không phụ thuộc threshold.

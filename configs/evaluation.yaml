@@ -2,9 +2,7 @@
 pred_dir: results/predictions      # <pred_dir>/<method>/<category>_<split>.npz
 out_dir: results/metrics
 methods: [autoencoder, patchcore, oneclass]
-# Used only if configs/protocol.yaml has no top-level `categories` key.
-categories: [bottle, carpet, leather, screw, transistor]
-threshold_percentile: 95.0         # P95 of validation normal scores (revisit on val only)
+# Categories and the threshold percentile come from configs/protocol.yaml (single source of truth).
 pixel_metrics: true
 compute_pro: true
 pro_fpr_limit: 0.3

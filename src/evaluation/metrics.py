@@ -48,7 +48,7 @@ def pixel_auroc(anomaly_maps, gt_masks, max_pixels=None, seed: int = 42) -> floa
 def pro_score(anomaly_maps, gt_masks, fpr_limit: float = 0.3, n_points: int = 200) -> float:
     """Per-Region Overlap AUC for FPR in [0, fpr_limit], normalised to [0, 1].
 
-    FPR is measured on pixels of anomaly-free images (MVTec convention).
+    FPR is measured on pixels of anomaly-free images (a documented choice).
     Thresholds are taken at evenly spaced FPR levels of the normal-pixel score
     distribution, which keeps it deterministic and memory-light.
     """

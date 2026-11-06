@@ -20,13 +20,18 @@ def main() -> None:
     ap.add_argument("--config", default="configs/evaluation.yaml")
     ap.add_argument("--protocol", default="configs/protocol.yaml")
     ap.add_argument("--methods", nargs="*")
+    ap.add_argument("--pred-dir", help="override pred_dir from the config")
+    ap.add_argument("--out-dir", help="override out_dir from the config")
     args = ap.parse_args()
 
     cfg = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
-    categories = cfg["categories"]
-    proto = Path(args.protocol)
-    if proto.exists():
-        categories = yaml.safe_load(proto.read_text(encoding="utf-8")).get("categories", categories)
+    protocol = yaml.safe_load(Path(args.protocol).read_text(encoding="utf-8"))
+    categories = protocol["dataset"]["categories"]
+    cfg["threshold_percentile"] = float(protocol["threshold"]["percentile"])
+    if args.pred_dir:
+        cfg["pred_dir"] = args.pred_dir
+    if args.out_dir:
+        cfg["out_dir"] = args.out_dir
     methods = args.methods or cfg["methods"]
 
     all_rows = []

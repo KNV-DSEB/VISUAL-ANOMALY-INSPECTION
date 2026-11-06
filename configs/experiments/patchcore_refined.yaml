@@ -1,0 +1,23 @@
+# Refined PatchCore configuration for I-02 (higher coreset coverage + finer neighborhood)
+method: patchcore
+
+backbone:
+  name: wide_resnet50_2
+  layers: [layer2, layer3]
+  pretrained: true
+
+patch:
+  patch_size: 3
+  proj_dim: 512           # Increased from 384 to preserve finer texture details
+  seed: 42
+
+coreset:
+  ratio: 0.20             # Increased from 0.10 to 0.20 for better small-defect sensitivity
+  max_patches: 15000
+  seed: 42
+
+scoring:
+  n_neighbors: 5          # Tighter k-NN density neighborhood (5 vs 9)
+  gaussian_sigma: 3.5     # Slightly sharper localization boundary
+  batch_size: 8
+  num_workers: 0

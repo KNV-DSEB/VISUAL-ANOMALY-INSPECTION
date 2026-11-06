@@ -1,0 +1,14 @@
+# Experiment configuration for I-01: Normal-sample sensitivity & False-alarm cost analysis
+experiment: few_shot_and_false_alarm
+
+sensitivity:
+  methods: [autoencoder, patchcore, one_class]
+  # Number of normal training images per category (null = full training split)
+  sample_counts: [10, 25, 50, 100, null]
+  seed: 42
+
+false_alarm_cost:
+  # Candidate validation normal score percentiles to evaluate operating points
+  percentiles: [80.0, 85.0, 90.0, 92.5, 95.0, 97.5, 99.0, 99.5]
+  # Cost ratios C_FN / C_FP (missed defect cost vs. false alarm inspection cost)
+  cost_ratios: [1.0, 5.0, 10.0]

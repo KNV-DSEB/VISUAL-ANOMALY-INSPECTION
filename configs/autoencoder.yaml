@@ -1,0 +1,22 @@
+# Autoencoder baseline configuration (AE-01, AE-02)
+method: autoencoder
+
+model:
+  in_channels: 3
+  base_channels: 32
+  latent_channels: 128
+  image_size: 224
+
+training:
+  epochs: 40
+  batch_size: 16
+  lr: 0.001
+  weight_decay: 0.00001
+  l1_weight: 0.5          # Combined MSE + 0.5 * L1 reconstruction loss
+  num_workers: 0          # Safe default for Windows / low-RAM machines
+  seed: 42
+
+scoring:
+  gaussian_sigma: 2.0     # Smooth pixel-level reconstruction error map
+  image_score_reduction: topk_mean  # Options: topk_mean, mean, max
+  topk_fraction: 0.02     # Average top 2% highest-error pixels for image-level score

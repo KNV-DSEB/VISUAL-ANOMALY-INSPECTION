@@ -81,6 +81,29 @@ def _row(root: Path, img: Path, cat: str, split: str, defect: str) -> dict:
     }
 
 
+def subsample_train_manifest(
+    manifest: pd.DataFrame, max_train_samples: int | None, seed: int = 42
+) -> pd.DataFrame:
+    """Subsample at most `max_train_samples` normal train images per category (for I-01).
+
+    Validation and test splits remain untouched so evaluation stays strictly comparable.
+    """
+    if max_train_samples is None or max_train_samples <= 0:
+        return manifest.copy()
+    parts = []
+    for cat, group in manifest.groupby("category", sort=False):
+        train_df = group[group["split"] == "train"]
+        other_df = group[group["split"] != "train"]
+        if len(train_df) > max_train_samples:
+            rng = random.Random(f"{seed}-subsample-{cat}-{max_train_samples}")
+            indices = list(train_df.index)
+            rng.shuffle(indices)
+            keep_idx = sorted(indices[:max_train_samples])
+            train_df = train_df.loc[keep_idx]
+        parts.append(pd.concat([train_df, other_df], ignore_index=True))
+    return pd.concat(parts, ignore_index=True)
+
+
 def build_transforms(protocol: dict):
     pre = protocol["preprocessing"]
     norm = pre["normalize"]
@@ -134,4 +157,5 @@ class MVTecDataset(Dataset):
             "category": row["category"],
             "defect_type": row["defect_type"],
             "path": row["path"],
+            "split": row["split"],
         }

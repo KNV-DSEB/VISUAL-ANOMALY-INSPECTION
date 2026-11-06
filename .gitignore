@@ -9,7 +9,9 @@ venv/
 
 # data & artifacts (never commit)
 /data/
+/artifacts/
 checkpoints/
+demo/examples/
 *.pt
 *.pth
 *.ckpt
@@ -23,5 +25,7 @@ results/*
 !results/.gitkeep
 !results/*.csv
 !results/*.md
+!results/metrics/
+!results/figures/
 
 graphify-out/

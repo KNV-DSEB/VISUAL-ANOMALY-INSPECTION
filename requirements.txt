@@ -1,4 +1,4 @@
-# Core (versions to be pinned after the first successful run)
+# Core dependencies for Visual Anomaly Inspection (Topic 2)
 torch
 torchvision
 numpy
@@ -11,6 +11,7 @@ pandas
 matplotlib
 tqdm
 faiss-cpu
+joblib
 pytest
 huggingface_hub
-# demo (added later): streamlit
+gradio

@@ -48,7 +48,8 @@ def pixel_auroc(anomaly_maps, gt_masks, max_pixels=None, seed: int = 42) -> floa
 def pro_score(anomaly_maps, gt_masks, fpr_limit: float = 0.3, n_points: int = 200) -> float:
     """Per-Region Overlap AUC for FPR in [0, fpr_limit], normalised to [0, 1].
 
-    FPR is measured on pixels of anomaly-free images (a documented choice).
+    FPR is measured over every non-defect pixel of every test image (dataset-level), so false
+    alarms next to a defect inside a defective image are counted too.
     Thresholds are taken at evenly spaced FPR levels of the normal-pixel score
     distribution, which keeps it deterministic and memory-light.
     """
@@ -56,7 +57,7 @@ def pro_score(anomaly_maps, gt_masks, fpr_limit: float = 0.3, n_points: int = 20
     masks = np.asarray(gt_masks) > 0
     has_defect = masks.reshape(len(masks), -1).any(axis=1)
 
-    normal_scores = np.sort(maps[~has_defect].reshape(-1))
+    normal_scores = np.sort(maps[~masks])  # all non-defect pixels, defective images included
     if normal_scores.size == 0 or not has_defect.any():
         return float("nan")
 

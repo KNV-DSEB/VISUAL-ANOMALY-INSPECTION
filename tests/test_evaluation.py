@@ -112,6 +112,21 @@ def test_pro_weights_small_regions_equally():
     assert pixel_auroc(maps, gt) > 0.95
 
 
+def test_pro_counts_false_alarms_inside_defective_images():
+    # The defect is found, but only together with a large "halo" of false alarms in the same image.
+    # FPR counts every non-defect pixel of every image, so the halo is penalised (PRO well below 1);
+    # measuring FPR on anomaly-free images only would ignore it and give PRO = 1.
+    gt = np.zeros((2, 16, 16), dtype=np.uint8)
+    gt[1, 6:10, 6:10] = 1
+    maps = np.zeros(gt.shape)
+    maps[1, gt[1] > 0] = 1.0
+    halo = np.zeros((16, 16), dtype=bool)
+    halo[:8, :15] = True
+    halo &= gt[1] == 0
+    maps[1, halo] = 1.0
+    assert 0.0 < pro_score(maps, gt) < 0.7
+
+
 def test_pixel_metrics_nan_without_defects():
     gt = np.zeros((2, 4, 4), dtype=np.uint8)
     maps = np.random.default_rng(0).uniform(size=gt.shape)

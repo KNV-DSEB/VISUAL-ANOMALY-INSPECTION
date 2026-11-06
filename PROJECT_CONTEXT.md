@@ -36,18 +36,15 @@ Next: review and merge `integration`, run the full benchmark on Colab (E-02), th
 - Evaluation schema: Kien's per-(method, category, split) `.npz` (`docs/evaluation_schema.md`), one harness for all methods.
 - One-class: Phong's implementation (pinned weights, hyperparameters fixed in config). Hoang's multi-scale variant is not a baseline.
 - Pretrained weights pinned by name (IMAGENET1K_V1).
+- PRO: false-positive rate over all non-defect pixels of all test images (decided 2026-11-06). On a light `bottle` run this
+  gives 0.909 for PatchCore where the earlier anomaly-free-images-only variant gave 0.989.
 - Demo: Gradio, only real checkpoints and saved tables (no fallback model, no simulated data).
 - Commits carry no Claude attribution (see .claude/settings.json).
 - Full runs use Google Colab; the local machine (GTX 1650 4 GB, CPU-only torch) is for development and tests.
 
 ## Open items
-- Ownership of the autoencoder and the demo (currently implemented by Hoang; Vu and Huy have no branch).
+- Ownership unchanged (decided 2026-11-06): Vu owns the autoencoder and Huy the demo; they review and finish the code Hoang wrote.
 - `scripts/train_oneclass.py` and `src/methods/one_class/pipeline.py` overlap with the shared runner; retire after Phong agrees.
-- PRO convention (needs a decision before the full run): the harness measures the false-positive rate on pixels of anomaly-free
-  images only. Counting all non-defect pixels of all test images (the dataset-level reading of the metric) gives a different value:
-  on `bottle` with a light PatchCore run, 0.989 versus 0.909 (pixel AUROC identical); for the autoencoder 0.133 versus 0.129.
-  Both implementations match their own exact reference, so the gap is the convention. The first one flatters methods whose false
-  positives sit next to defects.
 - Deadlines for proposal, milestone and final (the timeline assumes everything fits in 31/10 to 30/11).
 - Backbone default WideResNet50-2 may be heavy for a 4 GB GPU; ResNet18 is the fallback.
 

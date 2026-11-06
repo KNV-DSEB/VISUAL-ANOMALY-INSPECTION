@@ -48,7 +48,7 @@ Predictions(method="patchcore", category="bottle", split="test",
 | `precision`, `recall`, `f1` | ảnh | Tại threshold từ val. Mẫu số bằng 0 thì trả 0. |
 | `false_alarm_rate` | ảnh | FP / (FP + TN) trên test, phục vụ phần mở rộng false-alarm cost. |
 | `pixel_auroc` | pixel | AUROC trên mọi pixel của mọi ảnh test trong category. Có thể subsample (`pixel_auroc_max_pixels`). |
-| `pro` | pixel | Per-Region Overlap, tích phân FPR trong [0, 0.3], chuẩn hóa về [0, 1]. FPR tính trên pixel của ảnh normal; vùng = thành phần liên thông 8-neighbour. |
+| `pro` | pixel | Per-Region Overlap, tích phân FPR trong [0, 0.3], chuẩn hóa về [0, 1]. FPR tính trên mọi pixel không lỗi của mọi ảnh test (kể cả phần không lỗi trong ảnh lỗi); vùng = thành phần liên thông 8-neighbour. |
 
 `tp, fp, fn, tn` cũng được ghi để truy vết.
 

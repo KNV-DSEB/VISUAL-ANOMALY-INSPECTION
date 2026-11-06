@@ -4,7 +4,7 @@
 #   python scripts/train_oneclass.py --config configs/oneclass.yaml
 #   python scripts/evaluate.py --methods oneclass
 protocol: configs/protocol.yaml
-pred_dir: results/predictions        # must match configs/evaluation.yaml
+pred_dir: results/predictions        # must match configs/evaluation.yaml (used by scripts/train_oneclass.py)
 checkpoint_dir: checkpoints/oneclass # fitted detectors (joblib), never committed
 seed: 42
 device: auto                         # auto (cuda > mps > cpu) | cuda | mps | cpu

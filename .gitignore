@@ -23,5 +23,7 @@ results/*
 !results/.gitkeep
 !results/*.csv
 !results/*.md
+!results/metrics/
+!results/figures/
 
 graphify-out/

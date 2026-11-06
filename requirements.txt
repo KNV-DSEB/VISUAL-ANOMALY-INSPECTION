@@ -1,16 +1,18 @@
-# Core (versions to be pinned after the first successful run)
+# Core (versions to be pinned after the first successful Colab run)
 torch
 torchvision
 numpy
 scipy
 scikit-learn
+joblib
 pillow
 opencv-python-headless
 pyyaml
 pandas
 matplotlib
 tqdm
-faiss-cpu
-pytest
 huggingface_hub
-# demo (added later): streamlit
+# demo
+gradio
+# tests
+pytest

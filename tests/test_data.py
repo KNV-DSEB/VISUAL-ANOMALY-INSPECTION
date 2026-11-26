@@ -4,8 +4,10 @@ import torch
 from src.data.mvtec import MVTecDataset, build_manifest, load_protocol, resolve_root
 
 protocol = load_protocol()
+_root = resolve_root(protocol)
 pytestmark = pytest.mark.skipif(
-    not resolve_root(protocol).is_dir(), reason="MVTec AD data not downloaded"
+    not all((_root / c / "train" / "good").is_dir() for c in protocol["dataset"]["categories"]),
+    reason="Full MVTec AD data not downloaded",
 )
 
 

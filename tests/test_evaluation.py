@@ -11,7 +11,10 @@ import torch
 from src.data.mvtec import subsample_train_manifest
 from src.evaluation import (
     analyze_false_alarm_cost,
+    audit_mask_crop_loss,
+    bootstrap_threshold_stability,
     breakdown_by_defect_type,
+    compare_operating_percentiles,
     compute_image_metrics,
     compute_pixel_auroc,
     compute_pro_score,
@@ -206,3 +209,56 @@ def test_tiny_backbone_and_visualization(tmp_path: Path) -> None:
         tmp_path / "gallery.png",
     )
     assert out_gallery.exists()
+
+
+def test_audit_mask_crop_loss() -> None:
+    center_mask = np.zeros((256, 256), dtype=np.uint8)
+    center_mask[100:140, 100:140] = 255
+    res_center = audit_mask_crop_loss(center_mask, resize_size=256, crop_size=224)
+    assert res_center["pixels_lost"] == 0
+    assert res_center["area_loss_fraction"] == pytest.approx(0.0)
+    assert res_center["is_border_affected"] is False
+    assert res_center["is_completely_lost"] is False
+
+    border_only = np.zeros((256, 256), dtype=np.uint8)
+    border_only[0:10, 0:10] = 255
+    res_border = audit_mask_crop_loss(border_only, resize_size=256, crop_size=224)
+    assert res_border["pixels_before_crop"] == 100
+    assert res_border["pixels_after_crop"] == 0
+    assert res_border["area_loss_fraction"] == pytest.approx(1.0)
+    assert res_border["is_border_affected"] is True
+    assert res_border["is_completely_lost"] is True
+
+    partial_border = np.zeros((256, 256), dtype=np.uint8)
+    partial_border[10:26, 100:110] = 255  # y in [10..15] cropped out, [16..25] kept
+    res_partial = audit_mask_crop_loss(partial_border, resize_size=256, crop_size=224)
+    assert res_partial["is_border_affected"] is True
+    assert res_partial["is_completely_lost"] is False
+    assert 0.0 < res_partial["area_loss_fraction"] < 1.0
+
+
+def test_bootstrap_threshold_stability_and_compare_percentiles() -> None:
+    df, _, _ = _make_toy_predictions()
+    val_scores = df[(df["category"] == "bottle") & (df["split"] == "val")]["score"].to_numpy()
+    test_sub = df[(df["category"] == "bottle") & (df["split"] == "test")]
+
+    boot_df = bootstrap_threshold_stability(
+        val_scores=val_scores,
+        test_labels=test_sub["label"].to_numpy(),
+        test_scores=test_sub["score"].to_numpy(),
+        percentiles=(90.0, 95.0),
+        n_bootstrap=200,
+        seed=42,
+    )
+    assert list(boot_df["percentile"]) == [90.0, 95.0]
+    for col in ("threshold_std", "recall_ci_low", "recall_ci_high", "fpr_ci_low", "fpr_ci_high"):
+        assert col in boot_df.columns
+        assert np.isfinite(boot_df[col]).all()
+
+    comp_df = compare_operating_percentiles(df, low_p=90.0, high_p=95.0, n_bootstrap=200, seed=42)
+    assert set(comp_df["category"]) == {"bottle", "carpet", "mean"}
+    for col in ("recall_p90", "fpr_p90", "recall_p95", "fpr_p95", "delta_recall", "delta_fpr"):
+        assert col in comp_df.columns
+    mean_row = comp_df[comp_df["category"] == "mean"].iloc[0]
+    assert mean_row["delta_recall"] == pytest.approx(mean_row["recall_p90"] - mean_row["recall_p95"])
+    assert mean_row["delta_fpr"] == pytest.approx(mean_row["fpr_p90"] - mean_row["fpr_p95"])

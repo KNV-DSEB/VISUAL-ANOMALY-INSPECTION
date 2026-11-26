@@ -1,8 +1,11 @@
-"""Error analysis and per-defect-type breakdown utilities for E-03."""
+"""Error analysis, per-defect-type breakdown, and preprocessing crop audit utilities."""
 from __future__ import annotations
 
 import numpy as np
 import pandas as pd
+from PIL import Image
+from torchvision.transforms import InterpolationMode
+from torchvision.transforms import functional as TF
 
 from .threshold import apply_threshold
 
@@ -75,3 +78,42 @@ def find_error_cases(
         selected.append(pd.concat([fps, fns, tps, tns], ignore_index=True))
 
     return pd.concat(selected, ignore_index=True) if selected else pd.DataFrame()
+
+
+def audit_mask_crop_loss(
+    mask_pil_or_array: Image.Image | np.ndarray,
+    resize_size: int = 256,
+    crop_size: int = 224,
+) -> dict[str, int | float | bool]:
+    """Measure defect mask area lost when resizing and center-cropping a ground-truth mask."""
+    if isinstance(mask_pil_or_array, np.ndarray):
+        arr = mask_pil_or_array
+        if arr.ndim == 3:
+            arr = arr.squeeze()
+        mask_pil = Image.fromarray((arr > 0).astype(np.uint8) * 255, mode="L")
+    else:
+        mask_pil = mask_pil_or_array.convert("L")
+
+    resized = TF.resize(mask_pil, resize_size, interpolation=InterpolationMode.NEAREST)
+    cropped = TF.center_crop(resized, [crop_size, crop_size])
+
+    before_bin = np.asarray(resized, dtype=np.uint8) > 0
+    after_bin = np.asarray(cropped, dtype=np.uint8) > 0
+
+    pixels_before = int(before_bin.sum())
+    pixels_after = int(after_bin.sum())
+    pixels_lost = max(0, pixels_before - pixels_after)
+    area_loss_fraction = float(pixels_lost / pixels_before) if pixels_before > 0 else 0.0
+
+    return {
+        "orig_width": int(mask_pil.width),
+        "orig_height": int(mask_pil.height),
+        "resized_width": int(resized.width),
+        "resized_height": int(resized.height),
+        "pixels_before_crop": pixels_before,
+        "pixels_after_crop": pixels_after,
+        "pixels_lost": pixels_lost,
+        "area_loss_fraction": area_loss_fraction,
+        "is_border_affected": bool(pixels_lost > 0),
+        "is_completely_lost": bool(pixels_before > 0 and pixels_after == 0),
+    }
